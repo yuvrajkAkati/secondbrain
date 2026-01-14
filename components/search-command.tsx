@@ -24,11 +24,11 @@ export const SearchCommand = () => {
     const { user } = useUser()
     const router = useRouter()
     const [isMounted,setIsMounted] = useState(false)
-    // const [search, setSearch] = 
+    const [search, setSearch] =  useState("")
     const toggle = useSearch((store) => store.toggle)
     const isOpen = useSearch((store) => store.isOpen)
     const isClose = useSearch((store) => store.onClose) 
-    const documents = useQuery(api.document.getSearch)
+    const documents = useQuery(api.document.getSearch,{query : search})
     useEffect(()=>{
         setIsMounted(true)
     },[])
@@ -57,6 +57,8 @@ export const SearchCommand = () => {
         <CommandDialog open={isOpen} onOpenChange={isClose}>
             <CommandInput
                 placeholder={`Search...`}
+                value={search}
+                onValueChange={setSearch}
             ></CommandInput>
             <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
@@ -66,7 +68,7 @@ export const SearchCommand = () => {
                             key={document._id}
                             value={`${document._id}-${document.title}`}
                             title={`${document.title}`}
-                            onSelect={onSelect}
+                            onSelect={()=>onSelect(document._id)}
                         >
                             {document.icon ? (
                                     <p className="mr-2 text-[18px]">{document.icon}</p>

@@ -185,18 +185,30 @@ export const deletePermanently = mutation({
 })
 
 export const getSearch = query({
-    handler : async(ctx) => {
-        const user = await ctx.auth.getUserIdentity()
-        if(!user) throw new Error("Not authenticated")
-        const userId = user.subject
-        const documents = await ctx.db
-            .query("documents")
-            .withIndex("by_user",(q)=>q.eq("userId",userId))
-            .filter((q)=>q.eq(q.field("isArchived"),false))
-            .order("desc")
-            .collect()
-        return documents
-    }
+  args: {
+    query: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.auth.getUserIdentity()
+    if (!user) throw new Error("Not authenticated")
+
+    const userId = user.subject
+    const q = args.query.toLowerCase()
+
+    const documents = await ctx.db
+      .query("documents")
+      .withIndex("by_user", (q2) => q2.eq("userId", userId))
+      .filter((q2) => q2.eq(q2.field("isArchived"), false))
+      .collect()
+
+    if (!q) return documents
+
+    return documents.filter(
+      (doc) =>
+        doc.title.toLowerCase().includes(q) ||
+        (doc.content ?? "").toLowerCase().includes(q)
+    )
+  },
 })
 
 export const getById = query({
