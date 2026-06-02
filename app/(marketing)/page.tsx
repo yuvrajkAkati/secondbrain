@@ -1,18 +1,58 @@
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import Heading from "./_components/heading";
-import Heroes from "./_components/heroes";
-import Footer from "./_components/footer";
+import Heading from "./_components/heading"
+import Heroes from "./_components/heroes"
+import Footer from "./_components/footer"
 
 function HomePage() {
-  return (
-    <div className="min-h-full flex flex-col dark:bg-[#1F1F1F]">
-      <div className="flex flex-col items-center justify-center md:justify-start text-center gap-y-8 flex-1 px-6 pb-10 ">
-        <Heading/>
-        <Heroes/>
-      </div>
-      <Footer/>
-    </div>
-  );
+    return (
+        <div
+            className="
+                relative
+                flex
+                min-h-screen
+                flex-col
+                overflow-hidden
+                bg-black
+            "
+        >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.15),transparent_55%)]" />
+
+            <div className="absolute left-0 top-0 h-[500px] w-[500px] rounded-full bg-violet-600/10 blur-[140px]" />
+
+            <div className="absolute bottom-0 right-0 h-[500px] w-[500px] rounded-full bg-violet-500/10 blur-[140px]" />
+
+            <main
+                className="
+                    relative
+                    flex
+                    flex-1
+                    flex-col
+                    items-center
+                    justify-center
+                    px-6
+                    pt-32
+                    pb-16
+                "
+            >
+                <div
+                    className="
+                        mx-auto
+                        flex
+                        w-full
+                        max-w-7xl
+                        flex-col
+                        items-center
+                        gap-20
+                    "
+                >
+                    <Heading />
+
+                    <Heroes />
+                </div>
+            </main>
+
+            <Footer />
+        </div>
+    )
 }
-export default HomePage;
+
+export default HomePage

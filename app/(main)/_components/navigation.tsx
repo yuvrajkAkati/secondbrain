@@ -38,21 +38,22 @@ const Navigation = ({ children }: { children: React.ReactNode }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const create = useMutation(api.document.create);
   const user = useUser();
-  const router = useRouter()
+  const router = useRouter();
+
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<HTMLElementTagNameMap["aside"]>(null);
+
   const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
-  const [sidebarWidth, setSidebarWidth] = useState(240);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
   const [openTrash, setOpenTrash] = useState(false);
 
-  // --- Responsive behavior ---
   useEffect(() => {
     if (isMobile) {
       setIsCollapsed(true);
     } else {
       setIsCollapsed(false);
-      setSidebarWidth(240);
+      setSidebarWidth(280);
     }
   }, [isMobile]);
 
@@ -60,7 +61,6 @@ const Navigation = ({ children }: { children: React.ReactNode }) => {
     if (isMobile && !isCollapsed) collapse();
   }, [pathName]);
 
-  // --- Resize Handlers ---
   const handleMouseDown = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
@@ -72,11 +72,17 @@ const Navigation = ({ children }: { children: React.ReactNode }) => {
 
   const handleMouseMove = (event: MouseEvent) => {
     if (!isResizingRef.current || isCollapsed) return;
+
     let newWidth = event.clientX;
-    if (newWidth < 240) newWidth = 240;
-    if (newWidth > 480) newWidth = 480;
+
+    if (newWidth < 260) newWidth = 260;
+    if (newWidth > 500) newWidth = 500;
+
     setSidebarWidth(newWidth);
-    if (sidebarRef.current) sidebarRef.current.style.width = `${newWidth}px`;
+
+    if (sidebarRef.current) {
+      sidebarRef.current.style.width = `${newWidth}px`;
+    }
   };
 
   const handleMouseUp = () => {
@@ -85,11 +91,10 @@ const Navigation = ({ children }: { children: React.ReactNode }) => {
     document.removeEventListener("mouseup", handleMouseUp);
   };
 
-  // --- Sidebar controls ---
   const resetWidth = () => {
     setIsCollapsed(false);
     setIsResetting(true);
-    setSidebarWidth(240);
+    setSidebarWidth(280);
     setTimeout(() => setIsResetting(false), 300);
   };
 
@@ -101,8 +106,10 @@ const Navigation = ({ children }: { children: React.ReactNode }) => {
   };
 
   const onCreate = () => {
-    const newDoc = create({ title: "untitled" })
-    .then((documentId)=> router.push(`/documents/${documentId}`));
+    const newDoc = create({ title: "untitled" }).then((documentId) =>
+      router.push(`/documents/${documentId}`)
+    );
+
     toast.promise(newDoc, {
       loading: "Creating a new note...",
       success: "New Note Created!",
@@ -111,49 +118,98 @@ const Navigation = ({ children }: { children: React.ReactNode }) => {
   };
 
   const showDocument = !!params?.documentId;
-  const pushAmount =
-    !isMobile && !isCollapsed
-      ? `${Math.min(Math.round(sidebarWidth * 0.2), 80)}px`
-      : "0px";
 
   return (
-    <div className="flex h-full w-full overflow-hidden transition-all duration-300">
-      {/* SIDEBAR */}
+    <div className="flex h-full w-full overflow-hidden bg-black text-white">
       <aside
         ref={sidebarRef}
         className={cn(
-          "group/sidebar no-scrollbar overflow-y-auto bg-[#2E004F] h-full flex flex-col transition-all duration-300 text-white",
+          "group/sidebar no-scrollbar relative flex h-full flex-col overflow-y-auto border-r border-violet-500/10 bg-black/90 backdrop-blur-2xl transition-all duration-300",
+          "before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.12),transparent_60%)] before:pointer-events-none",
           isMobile ? "absolute z-[100000]" : "relative",
           isResetting && "ease-in-out"
         )}
         style={{
-          width: isMobile ? (isCollapsed ? "0px" : "100%") : `${sidebarWidth}px`,
+          width: isMobile
+            ? isCollapsed
+              ? "0px"
+              : "100%"
+            : `${sidebarWidth}px`,
         }}
       >
-        {/* Collapse button */}
         {!isCollapsed && (
           <div
             role="button"
-            className="h-6 w-6 hover:bg-purple-600 dark:hover:bg-black absolute top-3 right-3 z-[200000]
-              transition flex items-center justify-center border rounded-md bg-background/20 backdrop-blur-sm"
+            className="
+              absolute
+              right-4
+              top-4
+              z-[200000]
+              flex
+              h-9
+              w-9
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-violet-500/20
+              bg-white/[0.03]
+              text-white/60
+              backdrop-blur-xl
+              transition-all
+              duration-200
+              hover:border-violet-400/30
+              hover:bg-violet-500/10
+              hover:text-white
+              hover:shadow-[0_0_20px_rgba(139,92,246,0.25)]
+            "
           >
-            <ChevronsLeft className="h-5 w-5" onClick={collapse} />
+            <ChevronsLeft
+              className="h-5 w-5"
+              onClick={collapse}
+            />
           </div>
         )}
 
-        {/* Sidebar content */}
-        <div>
+        <div className="relative z-10">
           <UserItems />
-          <Item onClick={search.onOpen} label="Search" icon={Search} isSearch />
-          <Item onClick={settings.onOpen} label="Settings" icon={Settings} />
-          <Item onClick={onCreate} label="New Page" icon={PlusCircle} />
+
+          <div className="px-2">
+            <Item
+              onClick={search.onOpen}
+              label="Search"
+              icon={Search}
+              isSearch
+            />
+
+            <Item
+              onClick={settings.onOpen}
+              label="Settings"
+              icon={Settings}
+            />
+
+            <Item
+              onClick={onCreate}
+              label="New Page"
+              icon={PlusCircle}
+            />
+          </div>
         </div>
 
-        <div className="mt-4">
+        <div className="relative z-10 mt-4">
           <DocumentList />
-          <div className="pt-2">
-            <Item onClick={onCreate} icon={Plus} label="Add a page" />
-            <Popover open={openTrash} onOpenChange={setOpenTrash}>
+
+          <div className="pt-3 px-2">
+            <Item
+              onClick={onCreate}
+              icon={Plus}
+              label="Add a page"
+            />
+
+            <Popover
+              open={openTrash}
+              onOpenChange={setOpenTrash}
+            >
               <PopoverTrigger asChild>
                 <div onClick={(e) => e.stopPropagation()}>
                   <Item
@@ -163,11 +219,24 @@ const Navigation = ({ children }: { children: React.ReactNode }) => {
                   />
                 </div>
               </PopoverTrigger>
+
               <PopoverContent
                 align="start"
                 side="right"
-                sideOffset={8}
-                className="w-[300px] h-[400px] bg-background rounded-xl border shadow-xl overflow-hidden p-0"
+                sideOffset={12}
+                className="
+                  h-[420px]
+                  w-[340px]
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-violet-500/20
+                  bg-black/95
+                  p-0
+                  text-white
+                  backdrop-blur-2xl
+                  shadow-[0_0_50px_rgba(139,92,246,0.2)]
+                "
               >
                 <div className="h-full overflow-y-auto no-scrollbar">
                   <TrashBox />
@@ -177,46 +246,95 @@ const Navigation = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
 
-        {/* Resize handle */}
         {!isMobile && !isCollapsed && (
           <div
             onMouseDown={handleMouseDown}
-            className="opacity-0 group-hover/sidebar:opacity-100 absolute h-full w-1 bg-primary/10 right-0 top-0 transition cursor-ew-resize"
+            className="
+              absolute
+              right-0
+              top-0
+              h-full
+              w-[3px]
+              cursor-ew-resize
+              bg-violet-500/20
+              opacity-0
+              transition-all
+              duration-200
+              group-hover/sidebar:opacity-100
+            "
           />
         )}
       </aside>
 
-      {/* MAIN CONTENT */}
       <div
-        className="relative flex-1 h-full transition-all duration-300 overflow-y-auto"
-        style={{ marginLeft: 0 }}
+        className="
+          relative
+          flex-1
+          overflow-y-auto
+          bg-gradient-to-br
+          from-black
+          via-black
+          to-violet-950/20
+          transition-all
+          duration-300
+        "
       >
         {showDocument && (
-          <Navbar isCollapsed={isCollapsed} onResetWidth={resetWidth} />
+          <Navbar
+            isCollapsed={isCollapsed}
+            onResetWidth={resetWidth}
+          />
         )}
 
-        {/* ✅ Menu Icon (Top Left on /documents) */}
         {!showDocument && isCollapsed && (
-          <div className="absolute top-4 left-4">
-            <MenuIcon
+          <div className="absolute left-6 top-6">
+            <div
               role="button"
               onClick={resetWidth}
-              className="h-6 w-6 text-muted-foreground hover:text-foreground cursor-pointer transition"
-            />
+              className="
+                flex
+                h-10
+                w-10
+                items-center
+                justify-center
+                rounded-xl
+                border
+                border-violet-500/20
+                bg-white/[0.03]
+                text-white/60
+                backdrop-blur-xl
+                transition-all
+                duration-200
+                hover:border-violet-400/30
+                hover:bg-violet-500/10
+                hover:text-white
+                hover:shadow-[0_0_20px_rgba(139,92,246,0.25)]
+              "
+            >
+              <MenuIcon className="h-5 w-5" />
+            </div>
           </div>
         )}
 
-        {/* Centered Welcome Section */}
         <div
           className={cn(
-            "p-6 h-full transition-all duration-300",
-            !showDocument && "flex items-center justify-center"
+            "h-full p-6 transition-all duration-300",
+            !showDocument &&
+              "flex items-center justify-center"
           )}
         >
           {!showDocument ? (
-            <h1 className="text-3xl font-semibold text-center text-muted-foreground">
-              Welcome to {user.user?.firstName}&apos;s secondBrain 
-            </h1>
+            <div className="space-y-4 text-center">
+              <div className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
+
+              <h1 className="bg-gradient-to-r from-white via-violet-200 to-violet-400 bg-clip-text text-4xl font-bold text-transparent">
+                Welcome to {user.user?.firstName}&apos;s Second Brain
+              </h1>
+
+              <p className="text-sm text-white/50">
+                Organize ideas, notes, research and knowledge.
+              </p>
+            </div>
           ) : (
             children
           )}

@@ -127,6 +127,23 @@ body,
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+
+/* BlockNote full height layout */
+.bn-container {
+  height: 100% !important;
+}
+
+.bn-editor {
+  height: 100% !important;
+  overflow-y: auto !important;
+}
+
+/* Hide horizontal overflow */
+.bn-editor,
+.bn-container {
+  overflow-x: hidden !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
