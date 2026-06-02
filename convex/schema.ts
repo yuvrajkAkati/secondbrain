@@ -12,6 +12,9 @@ export default defineSchema({
         coverImage : v.optional(v.string()),
         icon : v.optional(v.string()),
         isPublished : v.boolean(),
+
+        //for ari searching
+        embedding : v.optional(v.array(v.number()))
     })
     .index("by_user",["userId"])
     .index("by_user_parent",["userId","parentDocument"])

@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import Banner from "./banner";
 import Menu from "./menu";
 import Publish from "./publish";
-import AiButton from "./ai-button";
+// import AiButton from "./ai-button";
 
 interface NavbarProps{
     isCollapsed : boolean;
@@ -52,7 +52,7 @@ const Navbar = ({isCollapsed,onResetWidth} : NavbarProps) => {
                 <div className="flex items-center justify-between w-full ">
                     <Title initialData = {document}/>
                     <div className="flex items-center gap-x-2">
-                        <AiButton></AiButton>
+                        {/* <AiButton></AiButton> */}
                         <Publish initialData={document}/>
                         <Menu documentId={document._id}/>
                     </div>

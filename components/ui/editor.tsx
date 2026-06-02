@@ -50,6 +50,7 @@ const Editor = ({ onChange, initialContent, editable = true }: EditorProps) => {
   const handleChange = () => {
     try {
       // latest BlockNote exposes .document which holds live content
+      console.log(editor.document);
       const content = JSON.stringify(editor.document, null, 2);
       onChange(content);
     } catch (err) {

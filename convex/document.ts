@@ -32,7 +32,6 @@ export const getDocuments = query({
 })
 
 
-
 export const create = mutation({
     args : {
         title : v.string(),
@@ -54,6 +53,7 @@ export const create = mutation({
         return document
     }
 })
+
 
 export const archive = mutation({
     args : {
@@ -100,6 +100,7 @@ export const archive = mutation({
         return document;
     }
 })
+
 
 export const fetchArchive = query({
     args : {
@@ -184,6 +185,7 @@ export const deletePermanently = mutation({
     }
 })
 
+
 export const getSearch = query({
   args: {
     query: v.string(),
@@ -210,6 +212,7 @@ export const getSearch = query({
     )
   },
 })
+
 
 export const getById = query({
     args : {
@@ -294,6 +297,7 @@ export const removeIcon = mutation({
     }
 })
 
+
 export const removeCoverImage =  mutation({
     args : {
         id : v.id("documents")
@@ -314,3 +318,58 @@ export const removeCoverImage =  mutation({
         return document;
     },
 })
+
+
+
+export const updateEmbedding = mutation({
+  args: {
+    documentId: v.id("documents"),
+    embedding: v.array(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+
+    const userId = identity.subject;
+
+    const document = await ctx.db.get(args.documentId);
+
+    if (!document) {
+      throw new Error("Document not found");
+    }
+
+    if (document.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    await ctx.db.patch(args.documentId, {
+      embedding: args.embedding,
+    });
+
+    return { success: true };
+  },
+});
+
+
+
+export const getAllDocumentsForSearch = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+
+    const userId = identity.subject;
+
+    return await ctx.db
+      .query("documents")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("isArchived"), false))
+      .collect();
+  },
+});

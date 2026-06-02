@@ -9,31 +9,51 @@ import { useMutation, useQuery } from "convex/react";
 import { useParams } from "next/navigation";
 import { use, useMemo } from "react";
 import dynamic from "next/dynamic";
+import { generateEmbedding } from "@/app/lib/ai/embeddings";
+import { extractText } from "@/app/lib/ai/extract-text";
 
-
-interface DocumentIdPageProps{
-    params : Promise<{
-        documentId : Id<"documents">
+interface DocumentIdPageProps {
+    params: Promise<{
+        documentId: Id<"documents">
     }>
 }
 
 const DocumentIdPage = ({
-} : DocumentIdPageProps) => {
-    const Editor = useMemo(()=>dynamic(()=>import("@/components/ui/editor"),{ssr : false}),[])
+}: DocumentIdPageProps) => {
+    const Editor = useMemo(() => dynamic(() => import("@/components/ui/editor"), { ssr: false }), [])
     const params = useParams()
-    const document = useQuery(api.document.getById,{
-        documentId : params.documentId as Id<"documents">
+    const document = useQuery(api.document.getById, {
+        documentId: params.documentId as Id<"documents">
     })
-
+    const updateEmbedding = useMutation(api.document.updateEmbedding)
     const update = useMutation(api.document.update)
-    const onChange = (content : string) => {
-        update({
-            id : params.documentId as Id<"documents">,
-            content : content
-        })
-    }
+    const onChange = async (content: string) => {
+        try {
+            const documentId = params.documentId as Id<"documents">;
 
-    if(document === undefined){
+            update({
+                id: documentId,
+                content,
+            });
+
+            console.log("Document updated");
+            const plainText = extractText(content);
+            const embedding = await generateEmbedding(plainText);
+
+            console.log("Embedding length:", embedding.length);
+
+            const result = await updateEmbedding({
+                documentId,
+                embedding,
+            });
+
+            console.log("Embedding saved", result);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    if (document === undefined) {
         return <div>
             <Cover.Skeleton></Cover.Skeleton>
             <div className="md:max-w-3xl lg:max-w-4xl mx-auto mt-10">
@@ -47,30 +67,30 @@ const DocumentIdPage = ({
         </div>
     }
 
-    if(document === null){
+    if (document === null) {
         return <div>
             Not found
         </div>
     }
 
-    return ( 
+    return (
         <div className="pb-40 flex flex-col w-full min-h-screen">
-  {/* ✅ Cover spans full width */}
-  <div className="w-full">
-    <Cover url={document.coverImage} />
-  </div>
-    <div className="h-[5vh]"></div>
-  {/* ✅ Content area centered on large screens */}
-  <div className="flex justify-center w-full ">
-    <div className="flex flex-col w-full md:max-w-3xl lg:max-w-6xl px-4">
-      <ToolBar initialData={document} />
-      <div className="h-[3vh]"></div>
-      <Editor onChange={onChange} initialContent={document.content} />
-    </div>
-  </div>
-</div>
+            {/* ✅ Cover spans full width */}
+            <div className="w-full">
+                <Cover url={document.coverImage} />
+            </div>
+            <div className="h-[5vh]"></div>
+            {/* ✅ Content area centered on large screens */}
+            <div className="flex justify-center w-full ">
+                <div className="flex flex-col w-full md:max-w-3xl lg:max-w-6xl px-4">
+                    <ToolBar initialData={document} />
+                    <div className="h-[3vh]"></div>
+                    <Editor onChange={onChange} initialContent={document.content} />
+                </div>
+            </div>
+        </div>
 
-     );
+    );
 }
- 
+
 export default DocumentIdPage;
